@@ -8,7 +8,8 @@ import numpy as np
 
 class DrugAI:
     # creates neural network model
-    def __init__(self, class_count, img_size, checkpoint_name):
+    def __init__(self, class_count, img_size, checkpoint_name, class_names):
+        self.class_names = class_names
         self.checkpoint_name = checkpoint_name
         self.checkpoint_callback = ModelCheckpoint(
             filepath=checkpoint_name,
@@ -46,9 +47,6 @@ class DrugAI:
 
     # predicts what is on image, data_path is path to the image
     def predict(self, data_path):
-        self.model.load_weights(self.checkpoint_name)
-
-        class_names = ['antidol 15', 'apap noc', 'clatra', 'dexoftyal', 'etopiryna', 'gripex control', 'momester', 'octanisept', 'paracetamol synoptics', 'solpadeine']
         img = keras.preprocessing.image.load_img(
             data_path, target_size=(self.img_size, self.img_size)
         )
@@ -57,4 +55,11 @@ class DrugAI:
         prediction = self.model.predict(img_array)[0]
         score = tf.nn.softmax(prediction)
         print("Processing image {}".format(data_path))
-        print("This image is {} ({}% confidence)".format(class_names[np.argmax(score)], 100 * np.max(score)))
+        print("This image is {} ({}% confidence)".format(self.class_names[np.argmax(score)], 100 * np.max(score)))
+
+    # converts model to tensorflow lite format and saves it to file
+    def convert_to_lite(self):
+        converter = tf.lite.TFLiteConverter.from_keras_model(self.model)
+        tflite_model = converter.convert()
+        with open('model.tflite', 'wb') as f:
+            f.write(tflite_model)
