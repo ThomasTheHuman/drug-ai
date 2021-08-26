@@ -3,7 +3,8 @@ from tensorflow import keras
 import numpy as np
 from picamera import PiCamera
 from time import sleep
-import config
+from config import img_size
+from config import class_names
 
 def predict(file_name, _interpreter):
     img = keras.preprocessing.image.load_img(
